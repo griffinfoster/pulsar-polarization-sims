@@ -1,7 +1,7 @@
 pulsar-polarization-sims
 ========================
 
-Scripts for simulations the effects of polarization purity in pulsar timing
+Scripts for simulationing the effects of polarization purity in pulsar timing
 
 Required Software:
 
