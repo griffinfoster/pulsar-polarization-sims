@@ -16,8 +16,8 @@ invStokes=np.matrix([[1.,0.,0.,1.],[1.,0.,0.,-1.],[0.,1.,1.,0.],[0.,-1.j,1.j,0.]
 Stokes=.5*np.matrix([[1.,1.,0.,0.],[0.,0.,1.,1.j],[0.,0.,1.,-1.j],[1.,-1.,0.,0.]])   #note 1/2
 
 #Get environiment variables for unset/export hacks when running pat and tempo2
-TEMPO_VAR=os.environ['TEMPO']
-TEMPO2_VAR=os.environ['TEMPO2']
+#TEMPO_VAR=os.environ['TEMPO']
+#TEMPO2_VAR=os.environ['TEMPO2']
 
 def Jones2Mueller(J):
     """Convert a Jones Matrix to a Mueller Matrix"""
@@ -135,7 +135,8 @@ def TimingSimulation(SN_Values,nomPolPur_Values,deltaJAmp_Values,pd1,parFile,mjd
     # Creating a fits file from the ascii profile which is template.dat
     if os.path.exists(os.path.abspath('.')+'/template.fits'): os.remove(os.path.abspath('.')+'/template.fits')
     #use original 'noisy' profile as the template for pat, but use the smoothed profile as the starting profile for simulation
-    command='/home/griffin/pulsar/PSRBeam/beam2fits%i template.dat template.hdr template.fits %f %f %s'%(b2f,pd1,fr,mjdline0)
+    #command='/home/griffin/pulsar/PSRBeam/beam2fits%i template.dat template.hdr template.fits %f %f %s'%(b2f,pd1,fr,mjdline0)
+    command='/home/foster/pulsar/PSRBeam/beam2fits%i template.dat template.hdr template.fits %f %f %s'%(b2f,pd1,fr,mjdline0)
     print command
     os.system(command)
     # Creates the invariant interval for timing and set site to Parkes
@@ -181,7 +182,8 @@ def TimingSimulation(SN_Values,nomPolPur_Values,deltaJAmp_Values,pd1,parFile,mjd
                     mjdline=mjdTriplet[idx]
                     fitsFile=datFile.split('.dat')[0]+'.fits'
                     
-                    command='/home/griffin/pulsar/PSRBeam/beam2fits%i %s template.hdr %s %f %f %s'%(b2f,datFile,fitsFile,pd1,fr,mjdline)
+                    #command='/home/griffin/pulsar/PSRBeam/beam2fits%i %s template.hdr %s %f %f %s'%(b2f,datFile,fitsFile,pd1,fr,mjdline)
+                    command='/home/foster/pulsar/PSRBeam/beam2fits%i %s template.hdr %s %f %f %s'%(b2f,datFile,fitsFile,pd1,fr,mjdline)
                     if verbose: print command
                     return_code=subprocess.call(command, shell=True, stdout=FNULL)
                     
@@ -440,8 +442,6 @@ if __name__ == "__main__":
         'mjdFile'   :   mjdFile,
         'beam2fits' :   opts.beam2fits,
     }
-
-    exit()
 
     #Run the simulation
     os.chdir(directory)
