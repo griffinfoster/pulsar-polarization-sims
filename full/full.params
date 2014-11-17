@@ -1,0 +1,8 @@
+#pulsar polarization simulation parameters file
+#
+#Signal to Noise, setup such that tInt=1 is equivalent to an SNR=1000, SNR scales as the sqrt of the integration time
+snr: 0.001,0.01,0.1,1
+#IXR dB
+ixr: 0.001,1.,2.,3.,4.,5.,7.,10.,15.,20.,25.,30.,35.,40.
+#Calibration Error (%)
+dj: 0.,1.,2.,3.,5.,7.,11.,15.,23.,30.

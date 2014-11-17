@@ -1,0 +1,8 @@
+Run batch simulations:
+cd /home/griffin/pulsar/simulations/full/
+./batchSim.sh
+
+Generate complete dict for analysis:
+cd /home/griffin/pulsar/simulations/full/J1824-2452/results/analysis/
+/home/griffin/pulsar/simulations/scripts/pklReduceDict.py --mjd=../../J1824.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+
