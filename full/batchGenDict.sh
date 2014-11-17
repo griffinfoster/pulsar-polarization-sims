@@ -1,85 +1,65 @@
 #!/bin/sh
-TEMPLATEDIR=/home/griffin/pulsar/simulations/full
-SCRIPTDIR=/home/griffin/pulsar/simulations/scripts
+TEMPLATEDIR=/home/foster/pulsar/simulations/full
+SCRIPTDIR=/home/foster/pulsar/simulations/scripts
 DICTSCRIPT=pklReduceDict.py
 
-mkdir $TEMPLATEDIR/J0613-0200/results/analysis/
-cd $TEMPLATEDIR/J0613-0200/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J0613.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J0613-0200
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J0613-0200/J0613.simulate.mjd $TEMPLATEDIR/J0613-0200/results/tim*.pkl $TEMPLATEDIR/J0613-0200/results/rms*.txt -o analysisDict.J0613.pkl
 
-mkdir $TEMPLATEDIR/J1045-4509/results/analysis/
-cd $TEMPLATEDIR/J1045-4509/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J1045.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J1045-4509
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J1045-4509/J1045.simulate.mjd $TEMPLATEDIR/J1045-4509/results/tim*.pkl $TEMPLATEDIR/J1045-4509/results/rms*.txt -o analysisDict.J1045.pkl
 
-mkdir $TEMPLATEDIR/J1824-2452/results/analysis/
-cd $TEMPLATEDIR/J1824-2452/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J1824.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J1824-2452
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J1824-2452/J1824.simulate.mjd $TEMPLATEDIR/J1824-2452/results/tim*.pkl $TEMPLATEDIR/J1824-2452/results/rms*.txt -o analysisDict.J1824.pkl
 
-mkdir $TEMPLATEDIR/J1939+2134/results/analysis/
-cd $TEMPLATEDIR/J1939+2134/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J1939.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J1939+2134
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J1939+2134/J1939.simulate.mjd $TEMPLATEDIR/J1939+2134/results/tim*.pkl $TEMPLATEDIR/J1939+2134/results/rms*.txt -o analysisDict.J1939.pkl
 
-mkdir $TEMPLATEDIR/J1600-3053/results/analysis/
-cd $TEMPLATEDIR/J1600-3053/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J1600.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J1600-3053
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J1600-3053/J1600.simulate.mjd $TEMPLATEDIR/J1600-3053/results/tim*.pkl $TEMPLATEDIR/J1600-3053/results/rms*.txt -o analysisDict.J1600.pkl
 
-mkdir $TEMPLATEDIR/J1643-1224/results/analysis/
-cd $TEMPLATEDIR/J1643-1224/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J1643.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J1643-1224
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J1643-1224/J1643.simulate.mjd $TEMPLATEDIR/J1643-1224/results/tim*.pkl $TEMPLATEDIR/J1643-1224/results/rms*.txt -o analysisDict.J1643.pkl
 
-mkdir $TEMPLATEDIR/J1732-5049/results/analysis/
-cd $TEMPLATEDIR/J1732-5049/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J1732.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J1732-5049
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J1732-5049/J1732.simulate.mjd $TEMPLATEDIR/J1732-5049/results/tim*.pkl $TEMPLATEDIR/J1732-5049/results/rms*.txt -o analysisDict.J1732.pkl
 
-mkdir $TEMPLATEDIR/J1909-3744/results/analysis/
-cd $TEMPLATEDIR/J1909-3744/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J1909.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J1909-3744
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J1909-3744/J1909.simulate.mjd $TEMPLATEDIR/J1909-3744/results/tim*.pkl $TEMPLATEDIR/J1909-3744/results/rms*.txt -o analysisDict.J1909.pkl
 
-mkdir $TEMPLATEDIR/J2129-5721/results/analysis/
-cd $TEMPLATEDIR/J2129-5721/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J2129.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J2129-5721
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J2129-5721/J2129.simulate.mjd $TEMPLATEDIR/J2129-5721/results/tim*.pkl $TEMPLATEDIR/J2129-5721/results/rms*.txt -o analysisDict.J2129.pkl
 
-mkdir $TEMPLATEDIR/J0437-4715/results/analysis/
-cd $TEMPLATEDIR/J0437-4715/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J0437.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J0437-4715
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J0437-4715/J0437.simulate.mjd $TEMPLATEDIR/J0437-4715/results/tim*.pkl $TEMPLATEDIR/J0437-4715/results/rms*.txt -o analysisDict.J0437.pkl
 
-mkdir $TEMPLATEDIR/J0711-6830/results/analysis/
-cd $TEMPLATEDIR/J0711-6830/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J0711.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J0711-6830
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J0711-6830/J0711.simulate.mjd $TEMPLATEDIR/J0711-6830/results/tim*.pkl $TEMPLATEDIR/J0711-6830/results/rms*.txt -o analysisDict.J0711.pkl
 
-mkdir $TEMPLATEDIR/J1024-0719/results/analysis/
-cd $TEMPLATEDIR/J1024-0719/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J1024.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J1024-0719
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J1024-0719/J1024.simulate.mjd $TEMPLATEDIR/J1024-0719/results/tim*.pkl $TEMPLATEDIR/J1024-0719/results/rms*.txt -o analysisDict.J1024.pkl
 
-mkdir $TEMPLATEDIR/J1603-7202/results/analysis/
-cd $TEMPLATEDIR/J1603-7202/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J1603.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J1603-7202
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J1603-7202/J1603.simulate.mjd $TEMPLATEDIR/J1603-7202/results/tim*.pkl $TEMPLATEDIR/J1603-7202/results/rms*.txt -o analysisDict.J1603.pkl
 
-mkdir $TEMPLATEDIR/J1713+0747/results/analysis/
-cd $TEMPLATEDIR/J1713+0747/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J1713.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J1713+0747
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J1713+0747/J1713.simulate.mjd $TEMPLATEDIR/J1713+0747/results/tim*.pkl $TEMPLATEDIR/J1713+0747/results/rms*.txt -o analysisDict.J1713.pkl
 
-mkdir $TEMPLATEDIR/J1730-2304/results/analysis/
-cd $TEMPLATEDIR/J1730-2304/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J1730.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J1730-2304
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J1730-2304/J1730.simulate.mjd $TEMPLATEDIR/J1730-2304/results/tim*.pkl $TEMPLATEDIR/J1730-2304/results/rms*.txt -o analysisDict.J1730.pkl
 
-mkdir $TEMPLATEDIR/J1744-1134/results/analysis/
-cd $TEMPLATEDIR/J1744-1134/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J1744.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J1744-1134
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J1744-1134/J1744.simulate.mjd $TEMPLATEDIR/J1744-1134/results/tim*.pkl $TEMPLATEDIR/J1744-1134/results/rms*.txt -o analysisDict.J1744.pkl
 
-mkdir $TEMPLATEDIR/J1857+0943/results/analysis/
-cd $TEMPLATEDIR/J1857+0943/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J1857.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J1857+0943
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J1857+0943/J1857.simulate.mjd $TEMPLATEDIR/J1857+0943/results/tim*.pkl $TEMPLATEDIR/J1857+0943/results/rms*.txt -o analysisDict.J1857.pkl
 
-mkdir $TEMPLATEDIR/J2124-3358/results/analysis/
-cd $TEMPLATEDIR/J2124-3358/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J2124.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J2124-3358
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J2124-3358/J2124.simulate.mjd $TEMPLATEDIR/J2124-3358/results/tim*.pkl $TEMPLATEDIR/J2124-3358/results/rms*.txt -o analysisDict.J2124.pkl
 
-mkdir $TEMPLATEDIR/J1022+1001/results/analysis/
-cd $TEMPLATEDIR/J1022+1001/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J1022.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J1022+1001
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J1022+1001/J1022.simulate.mjd $TEMPLATEDIR/J1022+1001/results/tim*.pkl $TEMPLATEDIR/J1022+1001/results/rms*.txt -o analysisDict.J1022.pkl
 
-mkdir $TEMPLATEDIR/J2145-0750/results/analysis/
-cd $TEMPLATEDIR/J2145-0750/results/analysis/
-$SCRIPTDIR/$DICTSCRIPT  --mjd=../../J2145.simulate.mjd ../tim*.pkl ../rms*.txt -o analysisDict.pkl
+echo J2145-0750
+$SCRIPTDIR/$DICTSCRIPT --mjd=$TEMPLATEDIR/J2145-0750/J2145.simulate.mjd $TEMPLATEDIR/J2145-0750/results/tim*.pkl $TEMPLATEDIR/J2145-0750/results/rms*.txt -o analysisDict.J2145.pkl
 

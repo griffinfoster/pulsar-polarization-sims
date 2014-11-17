@@ -14,7 +14,7 @@ if __name__ == "__main__":
     o.set_usage('%prog [options] --mjd=MJDFILE [TIM files] [RMS files]')
     o.set_description(__doc__)
     o.add_option('-m','--mode',dest='mode',default='pkl',
-        help='File mode: pkl or txt')
+        help='File mode: pkl or txt, default: pkl')
     o.add_option('--mjd',dest='mjdFile',default=None,
         help='MJD file')
     o.add_option('-o','--ofn',dest='ofn',default='combined.pkl',
@@ -36,25 +36,24 @@ if __name__ == "__main__":
     reduceDict={}
     for key in timDict.iterkeys():
         resDict={}
-        resDict['nobs']=timDict[key].shape[0]
         #compute average sigma toa
-        if timDict[key].size==0:
-            resDict['rms']=np.nan
-            resDict['obsMJD']=np.nan
-            resDict['expMJD']=np.nan
-            resDict['avgSigma']=np.nan
-            resDict['sigmas']=np.nan
+        if timDict[key].size==0: #no solution for the simulation parameters
+            print 'Warning simulation has no solution:',key
         else:
-            resDict['rms']=rmsDict[key]
-            validIdx=np.argwhere(timDict[key][:,0]>0) #pick out valid MJDs
-            resDict['obsMJD']=timDict[key][validIdx,0]
-            resDict['avgSigma']=np.mean(timDict[key][validIdx,1])
-            resDict['sigmas']=timDict[key][validIdx,1]
-            resDict['expMJD']=expMJDs[validIdx]
-            #compute chi^2
-            chi2=(1./(resDict['obsMJD'].shape[0]-1))*np.sum((((24.*60.*60.*1e6)*(resDict['obsMJD']-resDict['expMJD']))**2.)/(resDict['sigmas']**2.))
-            resDict['chi2']=chi2
-        reduceDict[key]=resDict
+            if rmsDict[key] < 0: #no RMS values
+                print 'Bad RMS values:', key
+            else:
+                resDict['rms']=rmsDict[key]
+                validIdx=np.argwhere(timDict[key][:,0]>0) #pick out valid MJDs
+                resDict['obsMJD']=timDict[key][validIdx,0]
+                resDict['avgSigma']=np.mean(timDict[key][validIdx,1])
+                resDict['sigmas']=timDict[key][validIdx,1]
+                resDict['expMJD']=expMJDs[validIdx]
+                resDict['nobs']=resDict['obsMJD'].shape[0]
+                #compute chi^2
+                chi2=(1./(resDict['obsMJD'].shape[0]-1))*np.sum((((24.*60.*60.*1e6)*(resDict['obsMJD']-resDict['expMJD']))**2.)/(resDict['sigmas']**2.))
+                resDict['chi2']=chi2
+                reduceDict[key]=resDict
 
     #save dictionary to pickle file
     pkl.dump(reduceDict,open(opts.ofn,'wb'))

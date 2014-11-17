@@ -240,19 +240,7 @@ def TimingSimulation(SN_Values,nomPolPur_Values,deltaJAmp_Values,pd1,parFile,mjd
                     tim2TxtFile='tim2_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
                     tim2PklFile='tim2_sn%i_dj%.4f_pp%.4f.%s.pkl'%(int(SN),deltaJAmp,nomPolPur,mode)
                     rms2TxtFile='rms2_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
-                    ##unset TEMPO and TEMPO2 environment variables
-                    #del os.environ['TEMPO']
-                    #del os.environ['TEMPO2']
-                    ##command='pat -p -f tempo2 -F -s template.fits %s*.%s.fits > %s 2> mtm.log'%(prefix,mode,tim2TxtFile)
-                    ##print command
-                    ##os.system(command)
-                    #for ff in sorted(glob.glob('%s*.%s.fits'%(prefix,mode))):
-                    #    command='pat -p -f tempo2 -F -s template.fits %s >> %s 2> mtm.log'%(ff,tim2TxtFile)
-                    #    print command
-                    #    os.system(command)
-                    ##re-setup TEMPO and TEMPO2 environment variables
-                    #os.environ['TEMPO']=TEMPO_VAR
-                    #os.environ['TEMPO2']=TEMPO2_VAR
+
                     tim2str='FORMAT 1\n'
                     tempo_tim2str='FORMAT 1\n'
                     tempo_tim2TxtFile='tim2_sn%i_dj%.4f_pp%.4f.%s.tempo'%(int(SN),deltaJAmp,nomPolPur,mode)
@@ -263,6 +251,9 @@ def TimingSimulation(SN_Values,nomPolPur_Values,deltaJAmp_Values,pd1,parFile,mjd
                         lines=cmdOutput.split('\n')
                         if len(lines)==2: #no solution
                             tim2str+='no_solution 0 0 0 0 \n'
+                            #TODO: add fits file to list of files to replace
+                            #   run pat on new fits files
+                            #   loop until all samples have a solution
                         else:
                             tim2str+=lines[1]+'\n'
                             tempo_tim2str+=lines[1]+'\n'
