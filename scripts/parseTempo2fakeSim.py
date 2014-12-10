@@ -24,7 +24,10 @@ if __name__ == "__main__":
     fh=open(opts.tempo2file,'r')
     fhOut=open(opts.tempo2file+'.mjd','w')
     outData=''
+    #NOTE: odd bug with tempo2 fake that generates 10x the number of MJDs, so just take the first 503
+    lcount=0
     for l in fh:
+        if lcount > 502: continue
         lws= ' '.join(l.split())
         if len(lws.split(' '))<3: continue
         mjd=float(lws.split(' ')[2])
@@ -33,6 +36,7 @@ if __name__ == "__main__":
         fmjd=smjd-int(smjd)
         smjd=int(smjd)
         outData+="       %i       %i    %.20f\n"%(imjd,smjd,fmjd)
+        lcount+=1
     fh.close()
     fhOut.write(outData)
     fhOut.close()

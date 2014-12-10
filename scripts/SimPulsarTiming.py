@@ -110,7 +110,7 @@ def SimInterfMeasPuls(Stokes,ofnPrefix,SN,nomPolPur,deltaJAmp):
     StokesToTextFile(StokesCalEst.transpose(),ofnPrefix+'.cal.dat')
     StokesToTextFile(StokesRaw.transpose(),ofnPrefix+'.uncal.dat')
 
-def TimingSimulation(SN_Values,nomPolPur_Values,deltaJAmp_Values,pd1,parFile,mjdFile,rootDir,b2f):
+def TimingSimulation(SN_Values,nomPolPur_Values,deltaJAmp_Values,pd1,parFile,mjdFile,rootDir,b2f,timingModes):
     """Simulate the timing of a pulsar across multiple parameter spaces
     SN_Values: signal to noise values to loop over
     nomPolPur_Values: polarization purity values to loop over
@@ -120,6 +120,7 @@ def TimingSimulation(SN_Values,nomPolPur_Values,deltaJAmp_Values,pd1,parFile,mjd
     mjdFile: file with a list of MJDs of expected pulse ToA
     rootDir: working root directory
     b2f: beam2fits executable name
+    timingModes: table of methods and calibration mode to use
     """
     fr=1.400 # fr is the centre frequency in GHz (not critical)
 
@@ -201,101 +202,109 @@ def TimingSimulation(SN_Values,nomPolPur_Values,deltaJAmp_Values,pd1,parFile,mjd
                 print 'done'
 
                 #Now we are left with nobs FITS files; time them in one go
-                for mode in ['cal','uncal']:
-                    #Total Intensity
-                    tim0TxtFile='tim0_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
-                    tim0PklFile='tim0_sn%i_dj%.4f_pp%.4f.%s.pkl'%(int(SN),deltaJAmp,nomPolPur,mode)
-                    rms0TxtFile='rms0_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
-                    command='pat -f tempo2 -F -s template.fits %s*.%s.fits > %s'%(prefix,mode,tim0TxtFile)
-                    print command
-                    os.system(command)
-                    
-                    command="tempo2 -f %s %s |grep \"residual\" |awk '{print $11}' > %s"%(parFile,tim0TxtFile,rms0TxtFile)
-                    print command
-                    os.system(command)
+                for mid,mode in enumerate(['cal','uncal']):
 
-                    tim0Data=readTimFile(tim0TxtFile)
-                    tim0pkl=open(tim0PklFile,'wb')
-                    pickle.dump(tim0Data,tim0pkl)
-                    tim0pkl.close()
+                    #Total Intensity
+                    if timingModes['ti'][mid] is True:
+                        tim0TxtFile='tim0_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
+                        tim0PklFile='tim0_sn%i_dj%.4f_pp%.4f.%s.pkl'%(int(SN),deltaJAmp,nomPolPur,mode)
+                        rms0TxtFile='rms0_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
+                        command='pat -f tempo2 -F -s template.fits %s*.%s.fits > %s'%(prefix,mode,tim0TxtFile)
+                        print command
+                        os.system(command)
+                        
+                        command="tempo2 -f %s %s |grep \"residual\" |awk '{print $11}' > %s"%(parFile,tim0TxtFile,rms0TxtFile)
+                        print command
+                        os.system(command)
+
+                        tim0Data=readTimFile(tim0TxtFile)
+                        tim0pkl=open(tim0PklFile,'wb')
+                        pickle.dump(tim0Data,tim0pkl)
+                        tim0pkl.close()
+
+                        #RMS values
+                        fh=open('%s/%s'%(rootDir,rms0TxtFile),'r')
+                        try: rms0=float(fh.readline())
+                        #except ValueError: rms0=float('NaN')
+                        except ValueError: rms0=-1.
+                        fh.close()
+                    else: rms0=-1
                     
                     #Invariant Interval
-                    tim1TxtFile='tim1_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
-                    tim1PklFile='tim1_sn%i_dj%.4f_pp%.4f.%s.pkl'%(int(SN),deltaJAmp,nomPolPur,mode)
-                    rms1TxtFile='rms1_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
-                    command='pat -f tempo2 -F -s template.ii %s*.%s.ii > %s'%(prefix,mode,tim1TxtFile)
-                    print command
-                    os.system(command)
-                    
-                    command="tempo2 -f %s %s |grep \"residual\" |awk '{print $11}' > %s"%(parFile,tim1TxtFile,rms1TxtFile)
-                    print command
-                    os.system(command)
+                    if timingModes['ti'][mid] is True:
+                        tim1TxtFile='tim1_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
+                        tim1PklFile='tim1_sn%i_dj%.4f_pp%.4f.%s.pkl'%(int(SN),deltaJAmp,nomPolPur,mode)
+                        rms1TxtFile='rms1_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
+                        command='pat -f tempo2 -F -s template.ii %s*.%s.ii > %s'%(prefix,mode,tim1TxtFile)
+                        print command
+                        os.system(command)
+                        
+                        command="tempo2 -f %s %s |grep \"residual\" |awk '{print $11}' > %s"%(parFile,tim1TxtFile,rms1TxtFile)
+                        print command
+                        os.system(command)
 
-                    tim1Data=readTimFile(tim1TxtFile)
-                    tim1pkl=open(tim1PklFile,'wb')
-                    pickle.dump(tim1Data,tim1pkl)
-                    tim1pkl.close()
+                        tim1Data=readTimFile(tim1TxtFile)
+                        tim1pkl=open(tim1PklFile,'wb')
+                        pickle.dump(tim1Data,tim1pkl)
+                        tim1pkl.close()
+                    
+                        #RMS values
+                        fh=open('%s/%s'%(rootDir,rms1TxtFile),'r')
+                        try: rms1=float(fh.readline())
+                        #except ValueError: rms1=float('NaN')
+                        except ValueError: rms1=-1.
+                        fh.close()
+                    else: rms1=-1
                     
                     #Matrix Template Matching
-                    tim2TxtFile='tim2_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
-                    tim2PklFile='tim2_sn%i_dj%.4f_pp%.4f.%s.pkl'%(int(SN),deltaJAmp,nomPolPur,mode)
-                    rms2TxtFile='rms2_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
+                    if timingModes['mtm'][mid] is True:
+                        tim2TxtFile='tim2_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
+                        tim2PklFile='tim2_sn%i_dj%.4f_pp%.4f.%s.pkl'%(int(SN),deltaJAmp,nomPolPur,mode)
+                        rms2TxtFile='rms2_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
 
-                    tim2str='FORMAT 1\n'
-                    tempo_tim2str='FORMAT 1\n'
-                    tempo_tim2TxtFile='tim2_sn%i_dj%.4f_pp%.4f.%s.tempo'%(int(SN),deltaJAmp,nomPolPur,mode)
-                    solutionCtr=0
-                    for ff in sorted(glob.glob('%s*.%s.fits'%(prefix,mode))):
-                        command='pat -p -f tempo2 -F -s template.fits %s 2> mtm.log'%(ff)
-                        cmdOutput=subprocess.check_output(command, shell=True)
-                        lines=cmdOutput.split('\n')
-                        if len(lines)==2: #no solution
-                            tim2str+='no_solution 0 0 0 0 \n'
-                            #TODO: add fits file to list of files to replace
-                            #   run pat on new fits files
-                            #   loop until all samples have a solution
-                        else:
-                            tim2str+=lines[1]+'\n'
-                            tempo_tim2str+=lines[1]+'\n'
-                            solutionCtr+=1
-                    print '%s: MTM returned %i of %i (%f%%) solutions'%(mode,solutionCtr,nobs,100.*float(solutionCtr)/nobs)
-                    #write MTM string to file
-                    fh=open(tim2TxtFile,'w')
-                    fh.write(tim2str)
-                    fh.close()
-                    #write to the file used to run tempo
-                    fh=open(tempo_tim2TxtFile,'w')
-                    fh.write(tempo_tim2str)
-                    fh.close()
-                    
-                    #command="tempo2 -f %s %s |grep \"residual\" |awk '{print $11}' > %s"%(parFile,tim2TxtFile,rms2TxtFile)
-                    command="tempo2 -f %s %s |grep \"residual\" |awk '{print $11}' > %s"%(parFile,tempo_tim2TxtFile,rms2TxtFile)
-                    print command
-                    os.system(command)
-                    
-                    tim2Data=readTimFile(tim2TxtFile)
-                    tim2pkl=open(tim2PklFile,'wb')
-                    pickle.dump(tim2Data,tim2pkl)
-                    tim2pkl.close()
+                        tim2str='FORMAT 1\n'
+                        tempo_tim2str='FORMAT 1\n'
+                        tempo_tim2TxtFile='tim2_sn%i_dj%.4f_pp%.4f.%s.tempo'%(int(SN),deltaJAmp,nomPolPur,mode)
+                        solutionCtr=0
+                        for ff in sorted(glob.glob('%s*.%s.fits'%(prefix,mode))):
+                            command='pat -p -f tempo2 -F -s template.fits %s 2> mtm.log'%(ff)
+                            cmdOutput=subprocess.check_output(command, shell=True)
+                            lines=cmdOutput.split('\n')
+                            if len(lines)==2: #no solution
+                                tim2str+='no_solution 0 0 0 0 \n'
+                                #TODO: add fits file to list of files to replace
+                                #   run pat on new fits files
+                                #   loop until all samples have a solution
+                            else:
+                                tim2str+=lines[1]+'\n'
+                                tempo_tim2str+=lines[1]+'\n'
+                                solutionCtr+=1
+                        print '%s: MTM returned %i of %i (%f%%) solutions'%(mode,solutionCtr,nobs,100.*float(solutionCtr)/nobs)
+                        #write MTM string to file
+                        fh=open(tim2TxtFile,'w')
+                        fh.write(tim2str)
+                        fh.close()
+                        #write to the file used to run tempo
+                        fh=open(tempo_tim2TxtFile,'w')
+                        fh.write(tempo_tim2str)
+                        fh.close()
+                        
+                        #command="tempo2 -f %s %s |grep \"residual\" |awk '{print $11}' > %s"%(parFile,tim2TxtFile,rms2TxtFile)
+                        command="tempo2 -f %s %s |grep \"residual\" |awk '{print $11}' > %s"%(parFile,tempo_tim2TxtFile,rms2TxtFile)
+                        print command
+                        os.system(command)
+                        
+                        tim2Data=readTimFile(tim2TxtFile)
+                        tim2pkl=open(tim2PklFile,'wb')
+                        pickle.dump(tim2Data,tim2pkl)
+                        tim2pkl.close()
                
-                    #RMS values
-                    fh=open('%s/%s'%(rootDir,rms0TxtFile),'r')
-                    try: rms0=float(fh.readline())
-                    #except ValueError: rms0=float('NaN')
-                    except ValueError: rms0=-1.
-                    fh.close()
-                    
-                    fh=open('%s/%s'%(rootDir,rms1TxtFile),'r')
-                    try: rms1=float(fh.readline())
-                    #except ValueError: rms1=float('NaN')
-                    except ValueError: rms1=-1.
-                    fh.close()
-                    
-                    fh=open('%s/%s'%(rootDir,rms2TxtFile),'r')
-                    try: rms2=float(fh.readline())
-                    #except ValueError: rms2=float('NaN').
-                    except ValueError: rms2=-1.
-                    fh.close()
+                        fh=open('%s/%s'%(rootDir,rms2TxtFile),'r')
+                        try: rms2=float(fh.readline())
+                        #except ValueError: rms2=float('NaN').
+                        except ValueError: rms2=-1.
+                        fh.close()
+                    else: rms2=-1
                     
                     rmsDict[(mode,SN,deltaJAmp,nomPolPur)]=(rms0,rms1,rms2)
                     print 'RMS(%s): total intersity: %f \t invariant interval: %f \t matrix template matching: %f'%(mode,rms0,rms1,rms2)
@@ -345,6 +354,8 @@ if __name__ == "__main__":
         help='Select which beam2fits compile to use: 256, 512, 1024, 2048 default: 512')
     o.add_option('-s','--sim',dest='simParam',default=None,
         help='Use a simulation parameter file, default is to use the hardcoded values in the script')
+    o.add_option('-M','--mode',dest='mode',default=None,
+        help='Timing modes to use on calibrated or uncalibrated data, default: all i.e. ti_uncal,ti_cal,ii_uncal,ii_cal,mtm_uncal,mtm_cal, ')
     opts, args = o.parse_args(sys.argv[1:])
 
     startTime=time.time()
@@ -424,6 +435,16 @@ if __name__ == "__main__":
 
     print 'Running %i simulations'%(len(dJRng)*len(polPurRng)*len(snRng))
 
+    if opts.mode is None:
+        timingModes={'ti': [True, True], 'ii': [True, True], 'mtm': [True, True]}
+    else:
+        timingModes={'ti': [False, False], 'ii': [False, False], 'mtm': [False, False]}
+        for mm in opts.mode.split(','):
+            mpair=mm.split('_')
+            if mpair[1].startswith('cal'): timingModes[mpair[0]][0]=True
+            if mpair[1].startswith('uncal'): timingModes[mpair[0]][1]=True
+    print 'Timing modes:', timingModes
+
     config={
         'snRng'     :   snRng,
         'polPurRng' :   polPurRng,
@@ -432,11 +453,12 @@ if __name__ == "__main__":
         'parFile'   :   parFile,
         'mjdFile'   :   mjdFile,
         'beam2fits' :   opts.beam2fits,
+        'timingModes' : timingModes,
     }
 
     #Run the simulation
     os.chdir(directory)
-    TimingSimulation(config['snRng'],config['polPurRng'],config['dJRng'],config['pd1'],config['parFile'],config['mjdFile'],directory,config['beam2fits'])
+    TimingSimulation(config['snRng'],config['polPurRng'],config['dJRng'],config['pd1'],config['parFile'],config['mjdFile'],directory,config['beam2fits'],config['timingModes'])
 
     endTime=time.time()
     diffTime=endTime-startTime
