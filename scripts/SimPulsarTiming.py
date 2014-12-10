@@ -122,7 +122,7 @@ def TimingSimulation(SN_Values,nomPolPur_Values,deltaJAmp_Values,pd1,parFile,mjd
     b2f: beam2fits executable name
     timingModes: table of methods and calibration mode to use
     """
-    fr=1.400 # fr is the centre frequency in GHz (not critical)
+    fr=1.568 # fr is the centre frequency in GHz (critical)
 
     rmsDict={}
     prefix='simPsr'
