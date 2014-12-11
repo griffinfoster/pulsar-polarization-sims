@@ -1,3 +1,6 @@
 # Byte-compiled
 *.pyc
 
+full/J*
+*.simulate
+
