@@ -35,12 +35,15 @@ def readTimFile(fn):
     arr=[]
     for l in lines:
         if l.startswith('FORMAT'): continue
-        splitLine=l.split()
-        mjd=splitLine[2].split('.')
-        #print mjd[0],mjd[1],'%.14f'%(float(mjd[0])+float(mjd[1][:12])/(1e12))
-        ndecimals=len(mjd[1])
-        cmjd=float(mjd[0])+float(mjd[1])/(10.**ndecimals)
-        arr.append([cmjd,float(splitLine[3])])
+        elif l.startswith('no_'):
+            arr.append([0.,0.])
+        else:
+            splitLine=l.split()
+            mjd=splitLine[2].split('.')
+            #print mjd[0],mjd[1],'%.14f'%(float(mjd[0])+float(mjd[1][:12])/(1e12))
+            ndecimals=len(mjd[1])
+            cmjd=float(mjd[0])+float(mjd[1])/(10.**ndecimals)
+            arr.append([cmjd,float(splitLine[3])])
     arr=np.array(arr)
     return arr
 

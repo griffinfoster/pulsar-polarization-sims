@@ -260,5 +260,7 @@ if __name__ == "__main__":
 
     p.gca().invert_xaxis()
 
-    p.show()
+    if opts.show: p.show()
+    if not(opts.savefig is None):
+        p.savefig(opts.savefig, bbox_inches='tight')
 
