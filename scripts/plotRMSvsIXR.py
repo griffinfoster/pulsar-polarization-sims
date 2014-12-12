@@ -23,20 +23,20 @@ if __name__ == "__main__":
     o.set_description(__doc__)
     o.add_option('-c','--cal',dest='calMode',default='cal',
         help='cal mode to use: cal or uncal, default: cal')
-    o.add_option('-g','--grid',dest='grid', default='0,30,0,40',
-        help='Grid limits for the plot: deltaJ min (%), deltaJ max (%), IXR min (dB), IXR max (dB) default: 0,30,0,40 ')
+    o.add_option('-g','--grid',dest='grid', default='0,3000,0,40',
+        help='Grid limits for the plot: SNR min , SNR max , IXR min (dB), IXR max (dB) default: 0,3000,0,40 ')
     o.add_option('-m','--mode',dest='mode',default='rms',
         help='Data mode: rms, chi2, sigma ; default: rms')
     o.add_option('-l','--leak',dest='leak', action='store_true',
         help='Plot in terms of polarization leakage instead of IXR')
     o.add_option('-r','--rms', dest='rmsMode', default=0, type='int',
         help='Set RMS mode, 0: total intesity, 1: invariant interval, 2: matrix template matching. default: 0')
+    o.add_option('--dJ',dest='dJ',default=0.05,type='float',
+        help='Calibration error to select out, default: 0.05')
     o.add_option('-s', '--savefig', dest='savefig', default=None,
         help='Save figure in a format based on name extension')
     o.add_option('-S','--show',dest='show', action='store_true',
         help='Show the plot')
-    o.add_option('--snr',dest='snr',default=100,type='int',
-        help='SNR value to use (rounds to nearest int value), default: 100')
     o.add_option('--scatter',dest='scatter',action='store_true',
         help='Scatter plot of raw data as opposed to an interpolated contour plot')
     o.add_option('--min',dest='min',default=None,type='float',
@@ -69,8 +69,8 @@ if __name__ == "__main__":
         exit()
 
     limits=map(int,opts.grid.split(','))
-    dJmin=limits[0]
-    dJmax=limits[1]
+    SNRmin=limits[0]
+    SNRmax=limits[1]
     IXRmin=limits[2]
     IXRmax=limits[3]
 
@@ -79,34 +79,37 @@ if __name__ == "__main__":
     deltaJs=[]
     simVals=[]
     nobs=[]
+    snrs=[]
     print 'Selecting subset'
     for key,val in reduceDict.iteritems():
-        if key[0]==opts.rmsMode and int(key[1])==opts.snr and key[4].startswith(opts.calMode): #RMS, CAL and SNR mode selection
+        if key[0]==opts.rmsMode and key[4].startswith(opts.calMode) and key[2]==opts.dJ: #RMS, CAL, dJ selection
             deltaJ=key[2]*100.
             polLeakdb=10.*np.log10((key[3]**2))
             ixrdb=10.*np.log10(1./(key[3]**2))
-            if deltaJ >= dJmin and deltaJ <= dJmax and ixrdb >= IXRmin and ixrdb <= IXRmax: #min/max delta J and IXR dB selection
-                #data product slection
-                #val keys: ['rms', 'chi2', 'avgSigma', 'obsMJD', 'nobs', 'expMJD', 'sigmas']
-                if np.isnan(val['rms']) or np.isnan(val['avgSigma']) or val['rms']<0.:
-                    print 'Warning: some selected values are NaN',key
-                    continue #skip any simulations which returned NaN
-                ixrdbs.append(ixrdb)
-                deltaJs.append(deltaJ)
-                polLeakdbs.append(polLeakdb)
-                if opts.mode.startswith('rms'): simVals.append(val['rms'])
-                elif opts.mode.startswith('chi'): simVals.append(val['chi2'])
-                elif opts.mode.startswith('sigma'): simVals.append(val['avgSigma'])
-                nobs.append(val['nobs'])
+            snr=key[1]
+            #if deltaJ >= dJmin and deltaJ <= dJmax and ixrdb >= IXRmin and ixrdb <= IXRmax: #min/max delta J and IXR dB selection
+            #data product slection
+            #val keys: ['rms', 'chi2', 'avgSigma', 'obsMJD', 'nobs', 'expMJD', 'sigmas']
+            if np.isnan(val['rms']) or np.isnan(val['avgSigma']) or val['rms']<0.:
+                print 'Warning: some selected values are NaN',key
+                continue #skip any simulations which returned NaN
+            ixrdbs.append(ixrdb)
+            deltaJs.append(deltaJ)
+            polLeakdbs.append(polLeakdb)
+            snrs.append(snr)
+            if opts.mode.startswith('rms'): simVals.append(val['rms'])
+            elif opts.mode.startswith('chi'): simVals.append(val['chi2'])
+            elif opts.mode.startswith('sigma'): simVals.append(val['avgSigma'])
+            nobs.append(val['nobs'])
 
     if opts.leak:
         ixrdbs=np.array(polLeakdbs)
-        temp=IXRmax
-        IXRmax=-1.*IXRmin
-        IXRmin=-1.*temp
+        #temp=IXRmax
+        #IXRmax=-1.*IXRmin
+        #IXRmin=-1.*temp
     else: ixrdbs=np.array(ixrdbs)
-    deltaJs=np.array(deltaJs)
     simVals=np.array(simVals)
+    snrs=np.array(snrs)
 
     #filter outliers
     if opts.filtout:
@@ -119,7 +122,7 @@ if __name__ == "__main__":
         #scatter plot
         print 'Generating scatter plot'
         scatSize=20.
-        p.scatter(deltaJs,ixrdbs,simVals*scatSize,c=simVals,edgecolors='none')
+        p.scatter(snrs,ixrdbs,simVals*scatSize,c=simVals,edgecolors='none')
         p.colorbar()
         #print np.median(simVals.flatten())
         #print np.mean(simVals.flatten())
@@ -131,7 +134,7 @@ if __name__ == "__main__":
         #contour plot
         print 'Generating interpolated contour plot'
         import scipy.interpolate
-        grid_x,grid_y=np.mgrid[dJmin:dJmax:20j*int(abs(dJmax-dJmin)), IXRmin:IXRmax:20j*int(abs(IXRmax-IXRmin))]
+        grid_x,grid_y=np.mgrid[SNRmin:SNRmax:20j*int(abs(SNRmax-SNRmin)), IXRmin:IXRmax:20j*int(abs(IXRmax-IXRmin))]
         grid_z=scipy.interpolate.griddata(( deltaJs, ixrdbs ), simVals, (grid_x,grid_y), method='linear')
         #set contour levels and labels
         #get the number of orders of magnitude in the dynamic range
@@ -146,18 +149,9 @@ if __name__ == "__main__":
             for i in range(maglvls):
                 l0=10.**(mag+(i*magstep))
                 lvls0.append(l0)
-                #if mag<0: fmt[l0]='%.3f'%(int(l0/(10.**mag))*(10.**mag))
-                if mag<0: fmt[l0]='%.1f'%(int(l0/(10.**mag))*(10.**mag))
+                if mag<0: fmt[l0]='%.3f'%(int(l0/(10.**mag))*(10.**mag))
                 else: fmt[l0]='%i'%(int(l0/(10.**mag))*(10.**mag))
-        #Select colors
-        #print lvls0
-        logLvls0=np.log10(lvls0)
-        logLvls0-=np.min(logLvls0)
-        logLvls0/=np.max(logLvls0)
-        #print logLvls0
-        rgbs=[]
-        for ll in logLvls0: rgbs.append((ll,0.,1.-ll))
-        CS=p.contour(grid_x,grid_y,grid_z,lvls0,colors=rgbs)
+        CS=p.contour(grid_x,grid_y,grid_z,lvls0)
         if np.abs(maxOrder-minOrder)>2:
             p.clabel(CS,CS.levels[maglvls*2::4],inline=0,fontsize=25,colors='black',fmt=fmt) #label every 4th level
             p.clabel(CS,CS.levels[:2*maglvls],inline=0,fontsize=25,colors='black',fmt=fmt) #label every level of the lowest 2 orders
