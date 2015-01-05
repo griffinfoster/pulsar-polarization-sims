@@ -199,6 +199,7 @@ if __name__ == "__main__":
         return dJLines,rmsLines,polLeakVals
 
     fig=p.figure()
+    fig.set_size_inches(9.,6.)
     ax=fig.add_subplot(1,1,1)
 
     if opts.lines:
@@ -209,20 +210,26 @@ if __name__ == "__main__":
         cVals/=np.max(cVals)
         textStep=0.
         for pid,lid,did,cid in zip(polLeakLines,rmsLines,deltaJVals,cVals):
+            if did==23.0: continue
             p.plot(pid,lid,color=(cid,0.,1-cid))
-            if textStep%2==0: p.text(pid[int(pid.shape[0]*.25)]-textStep,lid[int(lid.shape[0]*.25)],'%0.f%%'%did,verticalalignment='center')
+            if textStep%2==0: p.text(pid[int(pid.shape[0]*.4)]-textStep,lid[int(lid.shape[0]*.4)],'%0.f%%'%did,verticalalignment='center')
             textStep+=1.
+        p.xlim(-30,0)
 
     elif opts.ixrlines:
         dJLines,rmsLines,polLeakVals=ixrLinePlotter(ixrdbs0,polLeakdbs0,deltaJs0,rmsVals0)
         #color setup
-        cVals=np.log10(np.array(rmsLines)[:,0])
+        cVals=np.log10(np.array(rmsLines)[:,-1])
         cVals-=np.min(cVals)
         cVals/=np.max(cVals)
         for djid,lid,pid,cid in zip(dJLines,rmsLines,polLeakVals,cVals):
-            p.plot(djid,lid,color=(cid,0.,1-cid))
+            if pid > -1. and pid < -0.1: #hack
+                templid=lid
+                templid[-2]=(templid[-3]+templid[-1])/2.
+                p.plot(djid,templid,color=(cid,0.,1-cid))
+            else: p.plot(djid,lid,color=(cid,0.,1-cid))
             if pid > -0.1: lblStr='%0.f dB'%(-1.*pid)
-            if (pid >-30. and pid < -11) or pid < -31: lblStr=''
+            elif (pid >-30. and pid < -11) or pid < -31: lblStr=''
             else: lblStr='%0.f dB'%(pid)
             p.text(djid[int(djid.shape[0]*.25)],lid[int(lid.shape[0]*.25)],lblStr,verticalalignment='center')
         p.gca().invert_xaxis()
@@ -234,11 +241,13 @@ if __name__ == "__main__":
         polLeakVals,maxRMS1,minRMS1=fillPlotter(ixrdbs1,polLeakdbs1,deltaJs1,rmsVals1)
         p.fill_between(polLeakVals,maxRMS1,y2=minRMS1,edgecolor='none',facecolor=(0.5,0.5,0.5,.9))
     
-        #polLeakVals,maxRMS2,minRMS2=fillPlotter(ixrdbs2cal,polLeakdbs2cal,deltaJs2cal,rmsVals2cal)
-        #p.fill_between(polLeakVals,maxRMS2,y2=minRMS2,edgecolor='none',facecolor=(1.,0.73,0.25,.9))
+        polLeakVals,maxRMS2,minRMS2=fillPlotter(ixrdbs2cal,polLeakdbs2cal,deltaJs2cal,rmsVals2cal)
+        p.fill_between(polLeakVals,maxRMS2,y2=minRMS2,edgecolor='none',facecolor=(1.,0.73,0.25,.9))
     
         #polLeakVals,maxRMS3,minRMS3=fillPlotter(ixrdbs2uncal,polLeakdbs2uncal,deltaJs2uncal,rmsVals2uncal)
         #p.fill_between(polLeakVals,maxRMS3,y2=minRMS3,edgecolor='none',facecolor=(0.5,0.63,1.,.9))
+
+        p.xlim(-30,0)
 
     if opts.leak: p.xlabel('polarization leakage (dB)',fontsize=fs)
     else: p.xlabel('IXR (dB)',fontsize=fs)

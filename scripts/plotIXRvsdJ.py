@@ -148,6 +148,10 @@ if __name__ == "__main__":
                 lvls0.append(l0)
                 #if mag<0: fmt[l0]='%.3f'%(int(l0/(10.**mag))*(10.**mag))
                 if mag<0: fmt[l0]='%.1f'%(int(l0/(10.**mag))*(10.**mag))
+                elif mag==0:
+                    #print l0
+                    #fmt[l0]='%.1f'%(int(l0/(10.**mag))*(10.**mag))
+                    fmt[l0]='%.1f'%l0
                 else: fmt[l0]='%i'%(int(l0/(10.**mag))*(10.**mag))
         #Select colors
         #print lvls0
@@ -169,11 +173,13 @@ if __name__ == "__main__":
     p.xlabel('calibration error (%)',fontsize=fs)
     #dJbuffer=.1*np.abs((dJmax-dJmin))
     #p.xlim(dJmin-dJbuffer,dJmax+dJbuffer)
+    p.xlim(0,20)
     if opts.leak: p.ylabel('polarization leakage (dB)',fontsize=fs)
     else: p.ylabel('IXR (dB)',fontsize=fs)
     #ixrBuffer=.1*np.abs((IXRmax-IXRmin))
     #p.ylim(IXRmin-ixrBuffer,IXRmax+ixrBuffer)
-    p.title('%s [%s,%s]'%(modeTitle[opts.rmsMode],opts.mode,opts.calMode),fontsize=fs)
+    #p.title('%s [%s,%s]'%(modeTitle[opts.rmsMode],opts.mode,opts.calMode),fontsize=fs)
+    p.title('%s [%s]'%(modeTitle[opts.rmsMode],opts.calMode),fontsize=fs)
 
     if opts.show: p.show()
     if not(opts.savefig is None):

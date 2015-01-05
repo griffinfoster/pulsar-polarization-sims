@@ -136,7 +136,7 @@ if __name__ == "__main__":
         lvls0=[]
         lvlLbls=[]
         fmt={}
-        for mag in range(minOrder,maxOrder+1):
+        for mag in range(minOrder,maxOrder-2):
             maglvls=6 #make 6 contour levels for each magnitude
             magstep=1./maglvls
             for i in range(maglvls):
@@ -153,7 +153,12 @@ if __name__ == "__main__":
         #print logLvls0
         rgbs=[]
         for ll in logLvls0: rgbs.append((ll,0.,1.-ll))
+        grid_z=np.clip(grid_z,0.,5.)
         CS=p.contour(grid_x,grid_y,grid_z,lvls0,colors=rgbs)
+        
+        p.xlim(limits[0],limits[1])
+        ax.set_xscale('log')
+
         if np.abs(maxOrder-minOrder)>2:
             p.clabel(CS,CS.levels[maglvls*2::4],inline=0,fontsize=25,colors='black',fmt=fmt) #label every 4th level
             p.clabel(CS,CS.levels[:2*maglvls],inline=0,fontsize=25,colors='black',fmt=fmt) #label every level of the lowest 2 orders
@@ -163,14 +168,12 @@ if __name__ == "__main__":
         #p.colorbar()
 
     p.xlabel(r'fraction of reference $\tau_{int}$',fontsize=fs)
-    p.xlim(limits[0],limits[1])
     p.ylim(IXRmin,IXRmax)
 
     if opts.leak: p.ylabel('polarization leakage (dB)',fontsize=fs)
     else: p.ylabel('IXR (dB)',fontsize=fs)
     #p.title('%s [%s,%s]'%(modeTitle[opts.rmsMode],opts.mode,opts.calMode),fontsize=fs)
 
-    ax.set_xscale('log')
 
     if opts.show: p.show()
     if not(opts.savefig is None):
