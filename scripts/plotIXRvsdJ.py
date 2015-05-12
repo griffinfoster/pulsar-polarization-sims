@@ -6,6 +6,7 @@ import os,sys
 import numpy as np
 import matplotlib
 #matplotlib.use('Agg')
+from matplotlib import ticker
 import pylab as p
 
 import cPickle as pkl
@@ -162,10 +163,17 @@ if __name__ == "__main__":
         rgbs=[]
         for ll in logLvls0: rgbs.append((ll,0.,1.-ll))
         CS=p.contour(grid_x,grid_y,grid_z,lvls0,colors=rgbs)
-        if np.abs(maxOrder-minOrder)>2:
-            p.clabel(CS,CS.levels[maglvls*2::4],inline=0,fontsize=25,colors='black',fmt=fmt) #label every 4th level
-            p.clabel(CS,CS.levels[:2*maglvls],inline=0,fontsize=25,colors='black',fmt=fmt) #label every level of the lowest 2 orders
-        else: p.clabel(CS,CS.levels,inline=0,fontsize=25,colors='black',fmt=fmt) #label every level if there are feewer than 2 orders
+        print CS.levels
+        #if np.abs(maxOrder-minOrder)>2:
+        #    p.clabel(CS,CS.levels[maglvls*2::4],inline=1,fontsize=18,colors='black',fmt=fmt) #label every 4th level
+        #    #p.clabel(CS,CS.levels[maglvls:2*maglvls],inline=0,fontsize=25,colors='black',fmt=fmt) #label every level of the lowest 2 orders
+        #    p.clabel(CS,CS.levels[:2*maglvls],inline=1,fontsize=18,colors='black',fmt=fmt) #label every level of the lowest 2 orders
+        #else: p.clabel(CS,CS.levels,inline=1,fontsize=18,colors='black',fmt=fmt) #label every level if there are feewer than 2 orders
+
+        p.clabel(CS,CS.levels[np.where(CS.levels<10.)[0]],inline=1,fontsize=18,colors='black',fmt=fmt) #label every level if there are feewer than 2 orders
+
+        #CS=p.contour(grid_x,grid_y,grid_z,10,locator=ticker.LogLocator(base=0.7))
+        #p.clabel(CS,CS.levels,inline=1,fontsize=18,colors='black',fmt='%.1f')
 
         #p.imshow(np.rot90(grid_z),interpolation='nearest',extent=(dJmin,dJmax,IXRmin,IXRmax))
         #p.colorbar()
@@ -173,13 +181,15 @@ if __name__ == "__main__":
     p.xlabel('calibration error (%)',fontsize=fs)
     #dJbuffer=.1*np.abs((dJmax-dJmin))
     #p.xlim(dJmin-dJbuffer,dJmax+dJbuffer)
-    p.xlim(0,20)
+    p.xlim(0,dJmax)
     if opts.leak: p.ylabel('polarization leakage (dB)',fontsize=fs)
     else: p.ylabel('IXR (dB)',fontsize=fs)
     #ixrBuffer=.1*np.abs((IXRmax-IXRmin))
     #p.ylim(IXRmin-ixrBuffer,IXRmax+ixrBuffer)
     #p.title('%s [%s,%s]'%(modeTitle[opts.rmsMode],opts.mode,opts.calMode),fontsize=fs)
-    p.title('%s [%s]'%(modeTitle[opts.rmsMode],opts.calMode),fontsize=fs)
+    if opts.calMode.startswith('uncal'): calMode='gain'
+    elif opts.calMode.startswith('cal'): calMode='full'
+    p.title('%s [%s]'%(modeTitle[opts.rmsMode],calMode),fontsize=fs)
 
     if opts.show: p.show()
     if not(opts.savefig is None):

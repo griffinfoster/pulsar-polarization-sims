@@ -5,6 +5,7 @@
 import os,sys
 import numpy as np
 import matplotlib
+from matplotlib import ticker
 #matplotlib.use('Agg')
 import pylab as p
 
@@ -110,8 +111,8 @@ if __name__ == "__main__":
     tInts=np.array(tInts)
     simVals=np.array(simVals)
 
-    tIntmin=np.min(tInts)
-    tIntmax=np.max(tInts)
+    #tIntmin=np.min(tInts)
+    #tIntmax=np.max(tInts)
 
     fig=p.figure()
     ax=fig.add_subplot(1,1,1)
@@ -129,6 +130,7 @@ if __name__ == "__main__":
         import scipy.interpolate
         grid_x,grid_y=np.mgrid[tIntmin:tIntmax:1000j, IXRmin:IXRmax:20j*int(abs(IXRmax-IXRmin))]
         grid_z=scipy.interpolate.griddata(( tInts, ixrdbs ), simVals, (grid_x,grid_y), method='linear')
+        #grid_x=np.log(grid_x)
         #set contour levels and labels
         #get the number of orders of magnitude in the dynamic range
         maxOrder=int(np.log10(np.nanmax(simVals)))
@@ -144,7 +146,7 @@ if __name__ == "__main__":
                 lvls0.append(l0)
                 #if mag<0: fmt[l0]='%.3f'%(int(l0/(10.**mag))*(10.**mag))
                 if mag<0: fmt[l0]='%.1f'%(int(l0/(10.**mag))*(10.**mag))
-                else: fmt[l0]='%i'%(int(l0/(10.**mag))*(10.**mag))
+                else: fmt[l0]='%.1f'%(int(l0/(10.**mag))*(10.**mag))
         #Select colors
         #print lvls0
         logLvls0=np.log10(lvls0)
@@ -153,16 +155,22 @@ if __name__ == "__main__":
         #print logLvls0
         rgbs=[]
         for ll in logLvls0: rgbs.append((ll,0.,1.-ll))
-        grid_z=np.clip(grid_z,0.,5.)
-        CS=p.contour(grid_x,grid_y,grid_z,lvls0,colors=rgbs)
-        
-        p.xlim(limits[0],limits[1])
+        grid_z=np.clip(grid_z,0.,4.)
         ax.set_xscale('log')
+        CS=p.contour(grid_x,grid_y,grid_z,lvls0,colors=rgbs)
+        #CS=p.contour(grid_x,grid_y,grid_z,10,locator=ticker.LogLocator(base=0.7))
+        print CS.levels
+        
+        #ax.set_xscale('log')
 
-        if np.abs(maxOrder-minOrder)>2:
-            p.clabel(CS,CS.levels[maglvls*2::4],inline=0,fontsize=25,colors='black',fmt=fmt) #label every 4th level
-            p.clabel(CS,CS.levels[:2*maglvls],inline=0,fontsize=25,colors='black',fmt=fmt) #label every level of the lowest 2 orders
-        else: p.clabel(CS,CS.levels,inline=0,fontsize=25,colors='black',fmt=fmt) #label every level if there are feewer than 2 orders
+        #if np.abs(maxOrder-minOrder)>2:
+        #    p.clabel(CS,CS.levels[maglvls*2::4],inline=0,fontsize=25,colors='black',fmt=fmt) #label every 4th level
+        #    p.clabel(CS,CS.levels[:2*maglvls],inline=0,fontsize=25,colors='black',fmt=fmt) #label every level of the lowest 2 orders
+        #else: p.clabel(CS,CS.levels,inline=0,fontsize=25,colors='black',fmt=fmt) #label every level if there are feewer than 2 orders
+        #p.clabel(CS,CS.levels,inline=1,fontsize=25,colors='black',fmt=fmt) #label every 4th level
+        p.clabel(CS,CS.levels,inline=1,fontsize=18,colors='black',fmt='%1.1f') #label every 4th level
+        #ax.set_xscale('log')
+        #p.xlim(limits[0],limits[1])
 
         #p.imshow(np.rot90(grid_z),interpolation='nearest',extent=(dJmin,dJmax,IXRmin,IXRmax))
         #p.colorbar()

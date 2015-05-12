@@ -46,13 +46,18 @@ if __name__ == "__main__":
     dout=n.zeros_like(data, dtype=n.float32)
     for sid,stokes in enumerate(sclFactor): dout[sid,0,:]=data[sid,0,:].astype(n.float32)*sclFactor[sid]+offsets[sid]
 
+    if opts.rot: dout=n.roll(dout, dout.shape[2]/2, axis=2)
+
+    #HACK: select only centre 1/2 of profile
+    dlen=dout.shape[2]
+    dout=dout[:,:,int(dlen/3.):int(2.*dlen/3.)]
+    #END HACK
+
     xvals=n.arange(dout.shape[2],dtype=n.float32)
     #xvals to pulse phase
     xvals/=xvals.shape[0]
     #normalize amplitude
     dout/=n.max(dout)
-
-    if opts.rot: dout=n.roll(dout, dout.shape[2]/2, axis=2)
 
     IXR=7.
     polPur=1/n.sqrt(IXR)

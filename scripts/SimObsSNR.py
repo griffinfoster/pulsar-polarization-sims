@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Simulate Pulsar Timing ToA's using PSARCHIVE abd TEMPO2
+"""Return the average observed S/N from a set of simulation parameters
 """
 
 import numpy as np
@@ -75,7 +75,7 @@ def StokesFromTextFile(infile):
 	filehandle.close()
     return I,Q,U,V
 
-def SimInterfMeasPuls(Stokes,ofnPrefix,SN,nomPolPur,deltaJAmp, rxnoise=1., skynoise=0.): 
+def SimInterfMeasPuls(Stokes,ofnPrefix,SN,nomPolPur,deltaJAmp): 
     """Simulate an interferometer measurement of the pulsar profile Stokes spectrum, and writes spectrum to text file
     inputs:
         Stokes: template Stokes specturm
@@ -83,11 +83,6 @@ def SimInterfMeasPuls(Stokes,ofnPrefix,SN,nomPolPur,deltaJAmp, rxnoise=1., skyno
         SN: nominal signal-to-noise ratio
         nomPolPur: polarization purity, which is related to the IXR
         deltaJAmp: calibration error, 1=100%
-        noise: the system can have sky and receiver noise. rxnoise+skynoise=1 to maintain S/N.
-        rxnoise=1, skynoise=0 is a receiver noise dominated system, such as a high frequency receiver
-        rxnoise=0, skynoise=1 is a sky noise dominated system, such as a low frequency receiver
-        rxnoise: amount of recevier noise
-        skynoise: amount of sky noise
     """
     #Generate the polarimeter matrices for interferometer
     #nomPolPur is the polarization purity or 1/sqrt(IXR) (gmin is 1)
@@ -100,10 +95,9 @@ def SimInterfMeasPuls(Stokes,ofnPrefix,SN,nomPolPur,deltaJAmp, rxnoise=1., skyno
     Mtrue=Jones2Mueller(Jtrue)
 
     deltaJ=deltaJAmp*(np.matrix(np.random.randn(2,2))+1j*np.matrix(np.random.randn(2,2)))
-    Mest=Jones2Mueller(Jtrue+deltaJ) #full estimated system matrix (BGCD)
-    MestGain=Jones2Mueller(np.identity(2)+deltaJ) #gain-only estimated system matrix (BGC)
+    Mest=Jones2Mueller(Jtrue+deltaJ)
 
-    #Create receiver noise
+    #Create noise
     spectrumLen=np.shape(Stokes)[1]
     RecNoise=np.matrix(np.zeros((4,spectrumLen)))
     for indJ in range(spectrumLen):
@@ -111,31 +105,25 @@ def SimInterfMeasPuls(Stokes,ofnPrefix,SN,nomPolPur,deltaJAmp, rxnoise=1., skyno
         RecNoise[1,indJ]=np.random.randn()
         RecNoise[2,indJ]=np.random.randn()
         RecNoise[3,indJ]=np.random.randn()
-    RecNoise*=rxnoise
-
-    #Create sky noise
-    SkyNoise=np.matrix(np.zeros((4,spectrumLen)))
-    for indJ in range(spectrumLen):
-        SkyNoise[0,indJ]=np.random.randn()
-        SkyNoise[1,indJ]=np.random.randn()
-        SkyNoise[2,indJ]=np.random.randn()
-        SkyNoise[3,indJ]=np.random.randn()
-    SkyNoise*=skynoise
 
     #Scale data to SNR before adding receiver noise
     maxI=np.max(np.abs(Stokes[0]))
     Stokes=(SN)*Stokes/maxI 
 
-    StokesRaw=Mtrue*(Stokes)+Mtrue*(SkyNoise)+RecNoise #Compute raw signal
-    StokesGainCalEst=np.linalg.pinv(MestGain)*StokesRaw #Compute gain-calibrated only signal
-    StokesCalEst=np.linalg.pinv(Mest)*StokesRaw #Compute full calibrated signal
+    StokesRaw=Mtrue*(Stokes)+RecNoise  #Compute raw signal
+    StokesCalEst=np.linalg.inv(Mest)*StokesRaw #Compute calibrated signal
     StokesCalEst=np.real(StokesCalEst)
 
-    StokesToTextFile(StokesCalEst.transpose(),ofnPrefix+'.cal.dat')
-    StokesToTextFile(StokesGainCalEst.transpose(),ofnPrefix+'.uncal.dat')
+    #StokesToTextFile(StokesCalEst.transpose(),ofnPrefix+'.cal.dat')
     #StokesToTextFile(StokesRaw.transpose(),ofnPrefix+'.uncal.dat')
 
-def TimingSimulation(SN_Values,nomPolPur_Values,deltaJAmp_Values,pd1,parFile,mjdFile,rootDir,b2f,timingModes,rxnoise=1.,skynoise=0.):
+    maxId=np.argmax(Stokes[0])
+
+    #return np.max(np.abs(StokesCalEst[0])),np.std(StokesCalEst[0,256:768]),np.max(np.abs(StokesRaw[0])),np.std(StokesRaw[0,256:768]) #HARDCODE for J1603 profile
+    return np.abs(StokesCalEst[0,maxId]),np.std(StokesCalEst[0,256:768]),np.abs(StokesRaw[0,maxId]),np.std(StokesRaw[0,256:768]) #HARDCODE for J1603 profile
+    #return np.max(np.abs(StokesCalEst[0])),np.std(StokesCalEst[0]),np.max(np.abs(StokesRaw[0])),np.std(StokesRaw[0])
+
+def TimingSimulation(SN_Values,nomPolPur_Values,deltaJAmp_Values,pd1,parFile,mjdFile,rootDir,b2f,timingModes):
     """Simulate the timing of a pulsar across multiple parameter spaces
     SN_Values: signal to noise values to loop over
     nomPolPur_Values: polarization purity values to loop over
@@ -161,9 +149,8 @@ def TimingSimulation(SN_Values,nomPolPur_Values,deltaJAmp_Values,pd1,parFile,mjd
     # Creating a fits file from the ascii profile which is template.dat
     if os.path.exists(os.path.abspath('.')+'/template.fits'): os.remove(os.path.abspath('.')+'/template.fits')
     #use original 'noisy' profile as the template for pat, but use the smoothed profile as the starting profile for simulation
-    #command='/home/foster/pulsar/PSRBeam/beam2fits%i template.dat template.hdr template.fits %f %f %s'%(b2f,pd1,fr,mjdline0)
-    #use the smoothed profile for the base for the simulated profile and the template for timing
-    command='/home/foster/pulsar/PSRBeam/beam2fits%i template.smooth.dat template.hdr template.fits %f %f %s'%(b2f,pd1,fr,mjdline0)
+    #command='/home/griffin/pulsar/PSRBeam/beam2fits%i template.dat template.hdr template.fits %f %f %s'%(b2f,pd1,fr,mjdline0)
+    command='/home/foster/pulsar/PSRBeam/beam2fits%i template.dat template.hdr template.fits %f %f %s'%(b2f,pd1,fr,mjdline0)
     print command
     os.system(command)
     # Creates the invariant interval for timing and set site to Parkes
@@ -184,9 +171,16 @@ def TimingSimulation(SN_Values,nomPolPur_Values,deltaJAmp_Values,pd1,parFile,mjd
     mjdTriplet=fhMJD.readlines()
     nobs=len(mjdTriplet)
     fhMJD.close()
-                
+
     compt=0
     nsims=len(SN_Values)*len(deltaJAmp_Values)*len(nomPolPur_Values)
+    obsRawSNR=np.zeros(nsims)
+    stdObsRawSNR=np.zeros(nsims)
+    obsCalSNR=np.zeros(nsims)
+    stdObsCalSNR=np.zeros(nsims)
+    idealSNR=np.zeros(nsims)
+    ixr=np.zeros(nsims)
+    nid=0
     for SN in SN_Values:
         for deltaJAmp in deltaJAmp_Values:
             for nomPolPur in nomPolPur_Values:
@@ -196,172 +190,31 @@ def TimingSimulation(SN_Values,nomPolPur_Values,deltaJAmp_Values,pd1,parFile,mjd
 	            #I,Q,U,V=StokesFromTextFile('template.lpf.dat'
                 I,Q,U,V=StokesFromTextFile('template.smooth.dat')
                 Stokes=np.matrix([I,Q,U,V])
+                avgEstPeak=np.zeros(nobs)
+                avgRawPeak=np.zeros(nobs)
+                avgEstStd=np.zeros(nobs)
+                avgRawStd=np.zeros(nobs)
                 for i in range(nobs):
     	            ofnPrefix='%s%04i'%(prefix,i)
-    	            SimInterfMeasPuls(Stokes,ofnPrefix,SN,nomPolPur,deltaJAmp,rxnoise=rxnoise,skynoise=skynoise)
-                print 'done'
-                
-                #So now there should be nobs prefix*.cal.dat and prefix*.uncal.dat files ; convert to fits:
-                print 'Converting Stokes spectrum to FITS files'
-                for datFile in sorted(glob.glob('%s*.dat'%prefix)):
-                    if verbose: print 'Converting '+datFile+' to fits'
-                    idx=int(datFile.split('.')[0].split(prefix)[-1])
-                    mjdline=mjdTriplet[idx]
-                    fitsFile=datFile.split('.dat')[0]+'.fits'
-                    
-                    #command='/home/griffin/pulsar/PSRBeam/beam2fits%i %s template.hdr %s %f %f %s'%(b2f,datFile,fitsFile,pd1,fr,mjdline)
-                    command='/home/foster/pulsar/PSRBeam/beam2fits%i %s template.hdr %s %f %f %s'%(b2f,datFile,fitsFile,pd1,fr,mjdline)
-                    if verbose: print command
-                    return_code=subprocess.call(command, shell=True, stdout=FNULL)
-                    
-                    command='pam -IF -e ii --site 7 %s > /dev/null'%fitsFile
-                    if verbose: print command
-                    os.system(command)
-                    
-                    command='pam -m --site 7 %s > /dev/null'%fitsFile
-                    if verbose: print command
-                    os.system(command)
-                    
-                    command='rm -f %s'%datFile
-                    if verbose: print command
-                    os.system(command)
+    	            estPeak,estStd,rawPeak,rawStd=SimInterfMeasPuls(Stokes,ofnPrefix,SN,nomPolPur,deltaJAmp)
+                    #avgEstSNR[i]=estPeak/estStd
+                    #avgRawSNR[i]=rawPeak/rawStd
+                    avgEstPeak[i]=estPeak
+                    avgRawPeak[i]=rawPeak
+                    avgEstStd[i]=estStd
+                    avgRawStd[i]=rawStd
+                #print avgEstSNR/nobs, avgRawSNR/nobs
+                obsRawSNR[nid]=np.mean(avgRawPeak)/np.mean(avgRawStd)
+                stdObsRawSNR[nid]=np.std(avgRawPeak/avgRawStd)
+                obsCalSNR[nid]=np.mean(avgEstPeak)/np.mean(avgEstStd)
+                stdObsCalSNR[nid]=np.std(avgEstPeak/avgEstStd)
+                idealSNR[nid]=SN
+                ixr[nid]=1./(nomPolPur**2.)
+                nid+=1
                 print 'done'
 
-                #Now we are left with nobs FITS files; time them in one go
-                for mid,mode in enumerate(['cal','uncal']):
-
-                    #Total Intensity
-                    if timingModes['ti'][mid] is True:
-                        tim0TxtFile='tim0_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
-                        tim0PklFile='tim0_sn%i_dj%.4f_pp%.4f.%s.pkl'%(int(SN),deltaJAmp,nomPolPur,mode)
-                        rms0TxtFile='rms0_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
-                        command='pat -f tempo2 -F -s template.fits %s*.%s.fits > %s'%(prefix,mode,tim0TxtFile)
-                        print command
-                        os.system(command)
-                        
-                        command="tempo2 -f %s %s |grep \"residual\" |awk '{print $11}' > %s"%(parFile,tim0TxtFile,rms0TxtFile)
-                        print command
-                        os.system(command)
-
-                        tim0Data=readTimFile(tim0TxtFile)
-                        tim0pkl=open(tim0PklFile,'wb')
-                        pickle.dump(tim0Data,tim0pkl)
-                        tim0pkl.close()
-
-                        #RMS values
-                        fh=open('%s/%s'%(rootDir,rms0TxtFile),'r')
-                        try: rms0=float(fh.readline())
-                        #except ValueError: rms0=float('NaN')
-                        except ValueError: rms0=-1.
-                        fh.close()
-                    else: rms0=-1
-                    
-                    #Invariant Interval
-                    if timingModes['ti'][mid] is True:
-                        tim1TxtFile='tim1_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
-                        tim1PklFile='tim1_sn%i_dj%.4f_pp%.4f.%s.pkl'%(int(SN),deltaJAmp,nomPolPur,mode)
-                        rms1TxtFile='rms1_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
-                        command='pat -f tempo2 -F -s template.ii %s*.%s.ii > %s'%(prefix,mode,tim1TxtFile)
-                        print command
-                        os.system(command)
-                        
-                        command="tempo2 -f %s %s |grep \"residual\" |awk '{print $11}' > %s"%(parFile,tim1TxtFile,rms1TxtFile)
-                        print command
-                        os.system(command)
-
-                        tim1Data=readTimFile(tim1TxtFile)
-                        tim1pkl=open(tim1PklFile,'wb')
-                        pickle.dump(tim1Data,tim1pkl)
-                        tim1pkl.close()
-                    
-                        #RMS values
-                        fh=open('%s/%s'%(rootDir,rms1TxtFile),'r')
-                        try: rms1=float(fh.readline())
-                        #except ValueError: rms1=float('NaN')
-                        except ValueError: rms1=-1.
-                        fh.close()
-                    else: rms1=-1
-                    
-                    #Matrix Template Matching
-                    if timingModes['mtm'][mid] is True:
-                        tim2TxtFile='tim2_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
-                        tim2PklFile='tim2_sn%i_dj%.4f_pp%.4f.%s.pkl'%(int(SN),deltaJAmp,nomPolPur,mode)
-                        rms2TxtFile='rms2_sn%i_dj%.4f_pp%.4f.%s.txt'%(int(SN),deltaJAmp,nomPolPur,mode)
-
-                        tim2str='FORMAT 1\n'
-                        tempo_tim2str='FORMAT 1\n'
-                        tempo_tim2TxtFile='tim2_sn%i_dj%.4f_pp%.4f.%s.tempo'%(int(SN),deltaJAmp,nomPolPur,mode)
-                        solutionCtr=0
-                        for ff in sorted(glob.glob('%s*.%s.fits'%(prefix,mode))):
-                            command='pat -p -f tempo2 -F -s template.fits %s 2> mtm.log'%(ff)
-                            cmdOutput=subprocess.check_output(command, shell=True)
-                            lines=cmdOutput.split('\n')
-                            if len(lines)==2: #no solution
-                                tim2str+='no_solution 0 0 0 0 \n'
-                                #TODO: add fits file to list of files to replace
-                                #   run pat on new fits files
-                                #   loop until all samples have a solution
-                            else:
-                                tim2str+=lines[1]+'\n'
-                                tempo_tim2str+=lines[1]+'\n'
-                                solutionCtr+=1
-                        print '%s: MTM returned %i of %i (%f%%) solutions'%(mode,solutionCtr,nobs,100.*float(solutionCtr)/nobs)
-                        #write MTM string to file
-                        fh=open(tim2TxtFile,'w')
-                        fh.write(tim2str)
-                        fh.close()
-                        #write to the file used to run tempo
-                        fh=open(tempo_tim2TxtFile,'w')
-                        fh.write(tempo_tim2str)
-                        fh.close()
-                        
-                        #command="tempo2 -f %s %s |grep \"residual\" |awk '{print $11}' > %s"%(parFile,tim2TxtFile,rms2TxtFile)
-                        command="tempo2 -f %s %s |grep \"residual\" |awk '{print $11}' > %s"%(parFile,tempo_tim2TxtFile,rms2TxtFile)
-                        print command
-                        os.system(command)
-                        
-                        tim2Data=readTimFile(tim2TxtFile)
-                        tim2pkl=open(tim2PklFile,'wb')
-                        pickle.dump(tim2Data,tim2pkl)
-                        tim2pkl.close()
-               
-                        fh=open('%s/%s'%(rootDir,rms2TxtFile),'r')
-                        try: rms2=float(fh.readline())
-                        #except ValueError: rms2=float('NaN').
-                        except ValueError: rms2=-1.
-                        fh.close()
-                    else: rms2=-1
-                    
-                    rmsDict[(mode,SN,deltaJAmp,nomPolPur)]=(rms0,rms1,rms2)
-                    print 'RMS(%s): total intersity: %f \t invariant interval: %f \t matrix template matching: %f'%(mode,rms0,rms1,rms2)
-
-                #save rmsDict to a pickle file after ever step of the simulation
-                output=open('RMS.pkl','wb')
-                pickle.dump(rmsDict,output)
-                output.close()
-
-                #clean up simulation files
-                command='rm -f %s*'%(prefix)
-                print command
-                os.system(command)
-
-                compt+=1
-                perc=100.*compt/nsims
-                print 'Precent complete: %f'%(perc)
-                print 'Progress: %i of %i'%(compt,nsims)
-
-	# Writing data in file
-	fh=open('%s/RMS.dat'%rootDir,'w')
-	fh.write('mode S/N deltaJ PolPur rms0 rms1 rms2\n')
-	for k in rmsDict.keys():
-		fh.write(str(k[0])+' '+str(k[1])+' '+str(k[2])+' '+str(k[3])+' '+str(rmsDict[k][0])+' '+str(rmsDict[k][1])+' '+str(rmsDict[k][2])+'\n')
-	fh.close()
-
-    #move output files to the results directory
-    resultsDir='%s/results'%rootDir
-    for fn in glob.glob(os.path.join(rootDir, 'tim*')): shutil.move(fn, resultsDir)
-    for fn in glob.glob(os.path.join(rootDir, 'rms*')): shutil.move(fn, resultsDir)
-    for fn in glob.glob(os.path.join(rootDir, 'RMS*')): shutil.move(fn, resultsDir)
+    snrDict={'ideal':idealSNR,'avgRawObs':obsRawSNR,'stdObsRaw':stdObsRawSNR,'avgCalObs':obsCalSNR,'stdObsCal':stdObsCalSNR,'ixr':ixr}
+    pickle.dump(snrDict,open('snr.pkl','wb'))
 
 if __name__ == "__main__":
     from optparse import OptionParser
@@ -382,10 +235,6 @@ if __name__ == "__main__":
         help='Use a simulation parameter file, default is to use the hardcoded values in the script')
     o.add_option('-M','--mode',dest='mode',default=None,
         help='Timing modes to use on calibrated or uncalibrated data, default: all i.e. ti_uncal,ti_cal,ii_uncal,ii_cal,mtm_uncal,mtm_cal, ')
-    o.add_option('--rx',dest='rxnoise',default=1.,type=float,
-        help='Amount of receiver noise to use, rxnoise+skynoise=1 to maintain S/N, default: 1.')
-    o.add_option('--sky',dest='skynoise',default=0.,type=float,
-        help='Amount of sky noise to use, rxnoise+skynoise=1 to maintain S/N, default: 0.')
     opts, args = o.parse_args(sys.argv[1:])
 
     startTime=time.time()
@@ -488,7 +337,7 @@ if __name__ == "__main__":
 
     #Run the simulation
     os.chdir(directory)
-    TimingSimulation(config['snRng'],config['polPurRng'],config['dJRng'],config['pd1'],config['parFile'],config['mjdFile'],directory,config['beam2fits'],config['timingModes'],rxnoise=opts.rxnoise,skynoise=opts.skynoise)
+    TimingSimulation(config['snRng'],config['polPurRng'],config['dJRng'],config['pd1'],config['parFile'],config['mjdFile'],directory,config['beam2fits'],config['timingModes'])
 
     endTime=time.time()
     diffTime=endTime-startTime

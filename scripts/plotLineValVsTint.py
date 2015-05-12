@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
     simVals=np.array(simVals)
     polLeakdbs=np.array(polLeakdbs)
-    snrs=np.array(snrs)/normSNR
+    snrs=(np.array(snrs)/normSNR)**2.
 
     fig=p.figure()
     ax=fig.add_subplot(1,1,1)
@@ -134,11 +134,11 @@ if __name__ == "__main__":
         #slightly hardcoded plots and labels
         #if pVal > -0.0001: labelStr='%0.f dB'%(-1.*pVal) #-0 to 0
         if pVal > -0.1: continue
-        elif (pVal < -16. and pVal > -30) or pVal < -31.: continue #skip these lines
+        elif (pVal > -5.) or (pVal < -16. and pVal > -30) or pVal < -31.: continue #skip these lines
         else: labelStr='%0.f dB'%(pVal)
-        midPoint=int(subSnrs.shape[0]*.5)
+        midPoint=int(subSnrs.shape[0]*.33)
         p.plot(subSnrs[sIdx,0],subSimVals[sIdx,0],color=rgb)
-        p.text(subSnrs[sIdx,0][midPoint],0.8*subSimVals[sIdx,0][midPoint],labelStr,fontsize=14)
+        p.text(subSnrs[sIdx,0][midPoint],0.8*subSimVals[sIdx,0][midPoint],labelStr,fontsize=18)
 
     #lines of constant time (5, 1, .5 us)
     p.hlines([5,1,.5],np.min(snrs),np.max(snrs),linestyles=['dashed','dashdot','dotted'])
@@ -146,8 +146,10 @@ if __name__ == "__main__":
     #slightly hardcoded plot limits
     #print np.min(snrs),np.max(snrs)
     #print np.min(simVals),np.max(simVals)
-    p.xlim(np.min(snrs),np.max(snrs))
-    p.ylim(np.min(simVals),100)
+    #p.xlim(np.min(snrs),np.max(snrs))
+    p.xlim(np.min(snrs),0.1)
+    p.ylim(0.2,30)
+    #p.ylim(np.min(simVals)-0.5.,100)
     
     ax.set_xscale('log')
     ax.set_yscale('log')
