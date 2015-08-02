@@ -237,15 +237,22 @@ if __name__ == "__main__":
     else:
         polLeakVals,maxRMS0,minRMS0=fillPlotter(ixrdbs0,polLeakdbs0,deltaJs0,rmsVals0)
         p.fill_between(polLeakVals,maxRMS0,y2=minRMS0,edgecolor='none',facecolor=(1.,0.5,0.5,1.))
+        #p.fill_between(polLeakVals,maxRMS0,y2=minRMS0,edgecolor='black',linestyle='solid',facecolor=(1.,0.5,0.5,1.))
     
         polLeakVals,maxRMS1,minRMS1=fillPlotter(ixrdbs1,polLeakdbs1,deltaJs1,rmsVals1)
-        p.fill_between(polLeakVals,maxRMS1,y2=minRMS1,edgecolor='none',facecolor=(0.5,0.5,0.5,.9))
+        #p.fill_between(polLeakVals,maxRMS1,y2=minRMS1,edgecolor='none',facecolor=(0.5,0.5,0.5,.9))
+        p.fill_between(polLeakVals,maxRMS1,y2=minRMS1,edgecolor='black',linestyle='dashed',facecolor=(0.5,0.5,0.5,.9))
+        #p.fill_between(polLeakVals,maxRMS1,y2=minRMS1,edgecolor='none',facecolor=(0.5,0.5,0.5,.9), hatch='+')
     
         polLeakVals,maxRMS2,minRMS2=fillPlotter(ixrdbs2cal,polLeakdbs2cal,deltaJs2cal,rmsVals2cal)
-        p.fill_between(polLeakVals,maxRMS2,y2=minRMS2,edgecolor='none',facecolor=(1.,0.73,0.25,.9))
+        #p.fill_between(polLeakVals,maxRMS2,y2=minRMS2,edgecolor='none',facecolor=(1.,0.73,0.25,.9))
+        p.fill_between(polLeakVals,maxRMS2,y2=minRMS2,edgecolor='black',linestyle='dotted',facecolor=(1.,0.73,0.25,.9))
+        #p.fill_between(polLeakVals,maxRMS2,y2=minRMS2,edgecolor='none',facecolor=(1.,0.73,0.25,.9), hatch='x')
     
         polLeakVals,maxRMS3,minRMS3=fillPlotter(ixrdbs2uncal,polLeakdbs2uncal,deltaJs2uncal,rmsVals2uncal)
-        p.fill_between(polLeakVals,maxRMS3,y2=minRMS3,edgecolor='none',facecolor=(0.5,0.63,1.,.9))
+        #p.fill_between(polLeakVals,maxRMS3,y2=minRMS3,edgecolor='none',facecolor=(0.5,0.63,1.,.9))
+        p.fill_between(polLeakVals,maxRMS3,y2=minRMS3,edgecolor='black',linestyle='dashdot',facecolor=(0.5,0.63,1.,.9))
+        #p.fill_between(polLeakVals,maxRMS3,y2=minRMS3,edgecolor='none',facecolor=(0.5,0.63,1.,.9), hatch='/')
 
         p.xlim(-30,0)
 
